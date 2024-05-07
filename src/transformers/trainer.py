@@ -756,10 +756,13 @@ class Trainer:
             # Labels may be named label or label_ids, the default data collator handles that.
             self._signature_columns += list(set(["label", "label_ids"] + self.label_names))
 
-    def _remove_unused_columns(self, dataset: "datasets.Dataset", description: Optional[str] = None):
-        if not self.args.remove_unused_columns:
-            return dataset
+    def _set_signature_columns_if_needed_sample_weight(self):
         self._set_signature_columns_if_needed()
+        if "sample_weight" in self.train_dataset.features:
+            self._signature_columns += ["sample_weight"]
+
+    def _remove_unused_columns(self, dataset: "datasets.Dataset", description: Optional[str] = None):
+        self._set_signature_columns_if_needed_sample_weight()
         signature_columns = self._signature_columns
 
         ignored_columns = list(set(dataset.column_names) - set(signature_columns))
